@@ -19,13 +19,13 @@ function init() {
     e("password").value = password;
   }
   if (username && password) {
-    login();
+    login().then(listCalendar);
   }
 }
 
 let tiqbiz = null;
 
-function login() {
+async function login() {
   if (!tiqbiz) {
     tiqbiz = new TiqBizAPI();
   }
@@ -34,7 +34,7 @@ function login() {
   if (token) {
     log("Authenticating with stored API token...");
     // Try to authenticate with the token. If that fails, re-login.
-    tiqbiz.authenticate(token)
+    return tiqbiz.authenticate(token)
       .then(() => {
         e("loginBox").classList.add("loggedIn");
         log("Authenticated with stored API token");
@@ -43,18 +43,17 @@ function login() {
          localStorage.removeItem("apiToken");
          login();
        });
-    return;
   }
 
   let username = e("username").value;
   let password = e("password").value;
   if (username.length == 0 || password.length == 0) {
     log("Enter username and password to login");
-    return;
+    return Promise.reject("Enter username and password to login");
   }
 
   log("Logging in with username/password...");
-  tiqbiz.login(username, password).then(() => {
+  return tiqbiz.login(username, password).then(() => {
     log("Logged in with username/password");
     e("loginBox").classList.add("loggedIn");
     localStorage.setItem("username", username);
@@ -88,6 +87,7 @@ function clearChildren(node) {
 }
 
 async function listCalendar() {
+  log("Loading calendar...");
   let calendarPosts = await tiqbiz.calendar();
   let calendarDiv = e("calendar");
   clearChildren(calendarDiv);
