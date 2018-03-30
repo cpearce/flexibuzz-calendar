@@ -7,7 +7,7 @@ class TiqBizAPI {
   login(username, password) {
     this.username = username;
     this.password = password;
-    return new Promise(async (reject, resolve) => {
+    return new Promise(async (resolve, reject) => {
       this.postData("users/login", {
         email: this.username,
         password: this.password,
@@ -16,12 +16,12 @@ class TiqBizAPI {
         this.apiToken = json.token;
       })
       .then(() =>
-      this.getData("users/auth", {})
+        this.getData("users/auth", {})
       )
       .then((response) => {
         log("Response=" + JSON.stringify(response));
         this.businessId = response.admin_of[0];
-        log("businessId = " + businessId);
+        log("businessId = " + this.businessId);
       })
       .then(resolve, reject);
     });
