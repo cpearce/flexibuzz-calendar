@@ -26,21 +26,40 @@ function init() {
 let tiqbiz = null;
 
 function login() {
-  log("logging in");
   if (!tiqbiz) {
     tiqbiz = new TiqBizAPI();
   }
+
+  let token = localStorage.getItem("apiToken");
+  if (token) {
+    log("Authenticating with stored API token...");
+    // Try to authenticate with the token. If that fails, re-login.
+    tiqbiz.authenticate(token)
+      .then(() => {
+        e("loginBox").classList.add("loggedIn");
+        log("Authenticated with stored API token");
+       }, () => {
+         log("Failed to authenticate with stored token.");
+         localStorage.removeItem("apiToken");
+         login();
+       });
+    return;
+  }
+
   let username = e("username").value;
-  if (username.length > 0) {
-    localStorage.setItem("username", username);
-  }
   let password = e("password").value;
-  if (password.length > 0) {
-    localStorage.setItem("password", password);
+  if (username.length == 0 || password.length == 0) {
+    log("Enter username and password to login");
+    return;
   }
+
+  log("Logging in with username/password...");
   tiqbiz.login(username, password).then(() => {
-    log("Logged in");
+    log("Logged in with username/password");
     e("loginBox").classList.add("loggedIn");
+    localStorage.setItem("username", username);
+    localStorage.setItem("password", password);
+    localStorage.setItem("apiToken", tiqbiz.apiToken);
   }, (error) => {
     log("Failed to log in, error=" + error);
     e("loginBox").classList.remove("loggedIn");

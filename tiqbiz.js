@@ -12,23 +12,19 @@ class TiqBizAPI {
         email: this.username,
         password: this.password,
       })
-      .then((json) => {
-        this.apiToken = json.token;
-      })
-      .then(() =>
-        this.getData("users/auth", {})
-      )
-      .then((response) => {
-        log("Response=" + JSON.stringify(response));
-        this.businessId = response.admin_of[0];
-        log("businessId = " + this.businessId);
-      })
+      .then((json) => this.authenticate(json.token))
       .then(resolve, reject);
     });
   }
 
+  async authenticate(token) {
+    this.apiToken = token;
+    let response = await this.getData("users/auth", {});
+    this.business = response.admin_of[0];
+  }
+
   calendar() {
-    if (!this.apiToken || !this.businessId) {
+    if (!this.apiToken || !this.business) {
       return Promise.reject("Not logged in");
     }
 
@@ -42,13 +38,13 @@ class TiqBizAPI {
         return b;
       };
 
-      let response = await self.getData("businesses/" + self.businessId.id + "/posts", {
+      let response = await self.getData("businesses/" + self.business.id + "/posts", {
         post_type: "calendar", orderBy: "start_date|desc", page: 1, limit: 15,
       });
 
       let responses = [response];
       for (var page = 2; page <= response.meta.pagination.total_pages; page++) {
-        responses.push(await self.getData("businesses/" + self.businessId.id + "/posts", {
+        responses.push(await self.getData("businesses/" + self.business.id + "/posts", {
           post_type: "calendar", orderBy: "start_date|desc", page: page, limit: 15,
         }));
       }
@@ -71,10 +67,10 @@ class TiqBizAPI {
   }
 
   boxes() {
-    if (!this.apiToken || !this.businessId) {
+    if (!this.apiToken || !this.business) {
       return Promise.reject("Not logged in");
     }
-    return this.getData("businesses/" + this.businessId.id + "/boxes", {limit: 999})
+    return this.getData("businesses/" + this.business.id + "/boxes", {limit: 999})
     .then((response) => {
       var boxes = [];
       for (var box of response.data) {
