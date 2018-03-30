@@ -32,21 +32,30 @@ class TiqBizAPI {
       return Promise.reject("Not logged in");
     }
 
-    let extractBoxes = (boxes) => {
-      let b = [];
-      for (var box of boxes) {
-        b.push(box.name);
-      }
-      return b;
-    };
+    let self = this;
+    return new Promise(async function(resolve, reject) {
+      let extractBoxes = (boxes) => {
+        let b = [];
+        for (var box of boxes) {
+          b.push(box.name);
+        }
+        return b;
+      };
 
-    return this.getData("businesses/" + this.businessId.id + "/posts", {
-        post_type: "calendar", orderBy: "start_date|desc", limit: "100",
-      })
-      .then((response) => {
-        log(JSON.stringify(response));
-        var posts = [];
-        for (var post of response.data) {
+      let response = await self.getData("businesses/" + self.businessId.id + "/posts", {
+        post_type: "calendar", orderBy: "start_date|desc", page: 1, limit: 15,
+      });
+
+      let responses = [response];
+      for (var page = 2; page <= response.meta.pagination.total_pages; page++) {
+        responses.push(await self.getData("businesses/" + self.businessId.id + "/posts", {
+          post_type: "calendar", orderBy: "start_date|desc", page: page, limit: 15,
+        }));
+      }
+
+      var posts = [];
+      for (var r of responses) {
+        for (var post of r.data) {
           posts.push({
             title: post.title,
             startDate: post.start_date,
@@ -55,8 +64,10 @@ class TiqBizAPI {
             boxes: extractBoxes(post.boxes),
           });
         }
-        return posts;
-      });
+      }
+
+      resolve(posts);
+    });
   }
 
   boxes() {
