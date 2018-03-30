@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <script src="main.js" defer></script>
+    <script src="tiqbiz.js" defer></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+  </head>
+  <body onload="init();">
+    <div id="loginBox">
+      <p>FlexiBuzz username: <input type="text" id="username"/></p>
+      <p>FlexiBuzz password: <input type="password" id="password"/></p>
+      <p><button id="loginButton" onclick="login();">Login</button></p>
+    </div>
+    <div>
+      <button onclick="listBoxes();">List Boxes</button>
+      <button onclick="listCalendar();">List Calendar</button>
+    </div>
+    <div >
+      <table>
+        <thead>
+          <tr>
+            <td>Title</td><td>Date</td><td>Boxes</td>
+          </tr>
+        </thead>
+        <tbody id="calendar">
+        </tbody>
+      </table>
+    </div>
+    <div id="log"></div>
+  </body>
+</html>
