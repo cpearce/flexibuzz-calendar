@@ -36,11 +36,11 @@ async function login() {
     // Try to authenticate with the token. If that fails, re-login.
     return tiqbiz.authenticate(token)
       .then(() => {
-        e("loginBox").classList.add("loggedIn");
+        document.body.classList.add("loggedIn");
         log("Authenticated with stored API token");
         return listCalendar().then(setupNewEventForm);
       }, () => {
-         log("Failed to authenticate with stored token.");
+         log("Failed to authenticate with stored token, re-logging...");
          localStorage.removeItem("apiToken");
          return login();
       });
@@ -56,20 +56,21 @@ async function login() {
   log("Logging in with username/password...");
   return tiqbiz.login(username, password).then(() => {
     log("Logged in with username/password");
-    e("loginBox").classList.add("loggedIn");
+    document.body.classList.add("loggedIn");
     localStorage.setItem("username", username);
     localStorage.setItem("password", password);
     localStorage.setItem("apiToken", tiqbiz.apiToken);
     return listCalendar().then(setupNewEventForm);
   }, (error) => {
     log("Failed to log in, error=" + error);
-    e("loginBox").classList.remove("loggedIn");
+    document.body.classList.remove("loggedIn");
   })
 }
 
 async function setupNewEventForm() {
-  // Setup list of boxes.
+  log("Loading box list...");
   let boxes = await tiqbiz.boxes();
+  log("Loaded box list.");
   let boxList = e('box-list');
   clearChildren(boxList);
   for (var box of boxes) {
@@ -101,6 +102,7 @@ function clearChildren(node) {
 async function listCalendar() {
   log("Loading calendar...");
   let calendarPosts = await tiqbiz.calendar();
+  log("Loaded calendar");
   let calendarDiv = e("calendar");
   clearChildren(calendarDiv);
 
@@ -144,13 +146,14 @@ function fw(n) {
 }
 
 function makeShortDate(d) {
-  // 2018-03-30 15:24:42
   return d.getFullYear() + "-" + fw(d.getMonth() + 1) + "-" + fw(d.getDate());
 }
 
 async function createCalendarEvent() {
-  // 2018-05-11 00:00:00
-  // all day events don't have a time, just date.
+  if (e("title").value.length == 0) {
+    alert("Please enter a title");
+    return;
+  }
 
   // Figure out which boxes are checked.
   let boxes = [];
@@ -160,17 +163,36 @@ async function createCalendarEvent() {
       boxes.push(checkbox.boxId);
     }
   }
+  if (boxes.length == 0) {
+    alert("Please check at least one box as a target for event notification.");
+    return;
+  }
 
   // Figure our recurrent instances.
   let repetitions = [];
   for (var span of document.querySelectorAll(".recurrent-event-repetition")) {
     repetitions.push(span.textContent);
   }
+  if (repetitions.length == 0) {
+    alert("Failed to calculate dates for event notification. Check you've set a date and selected recurrence frequency.");
+    return;
+  }
 
-  boxes = boxes.join(","); // Figure out multi-format for boxes.
-  let allDay = e("allDay").value == "on" ? true : false;
+  boxes = boxes.join(",");
+  let allDay = e("allDay").checked;
+  if (!allDay && !/\d\d:\d\d/.test(e("startTime").value)) {
+    alert("Please enter a start time.");
+    return;
+  }
   let startTime = e("startTime").value + ":00";
-  let endTime = e("endTime").value.length > 0 ? (e("endTime").value + ":00") : undefined;
+  let endTime = undefined;
+  if (e("endTime").value.length > 0) {
+    if (!/\d\d:\d\d/.test(e("endTime").value)) {
+      alert("End time looks invalid");
+      return;
+    }
+    endTime = e("endTime").value + ":00";
+  }
   for (var date of repetitions) {
     // Figure out what notifications are selected.
     let notifications = [];
@@ -178,14 +200,22 @@ async function createCalendarEvent() {
       let d = makeShortDate(addDays(new Date(date), -1));
       notifications.push(makeDate(d, "10:00:00", false));
     }
-    if (e("notify-24-hours-before").checked) {
+    if (!allDay &&
+        !e("notify-24-hours-before").disabled &&
+        e("notify-24-hours-before").checked) {
       let d = makeShortDate(addDays(new Date(date), -1));
       notifications.push(makeDate(d, startTime, false));
     }
-    if (e("notify-1-hour-before").checked) {
+    if (!allDay &&
+        !e("notify-1-hour-before").disabled &&
+        e("notify-1-hour-before").checked) {
       let timeStr = date + " " + startTime;
       let d = makeShortDateTime(addHours(new Date(timeStr), -1));
       notifications.push(d);
+    }
+    if (notifications.length == 0) {
+      alert("Failed to calculate notification times.");
+      return;
     }
 
     let event = {
@@ -220,9 +250,13 @@ function allDayChanged(event) {
   if (allDayCheckbox.checked) {
     e("startTime").disabled = true;
     e("endTime").disabled = true;
+    e("notify-1-hour-before").disabled = true;
+    e("notify-24-hours-before").disabled = true;
   } else {
     e("startTime").disabled = false;
     e("endTime").disabled = false;
+    e("notify-1-hour-before").disabled = false;
+    e("notify-24-hours-before").disabled = false;
   }
 }
 
@@ -239,6 +273,13 @@ function addHours(date, hours) {
 }
 
 function updateRecurrence() {
+  if (e("startDate").value.length == 0) {
+    return;
+  }
+  e("recurrence-ending-date").value;
+  if (e("recurrence-ending-date").value.length == 0) {
+    e("recurrence-ending-date").value = e("startDate").value;
+  }
   let from = new Date(e("startDate").value);
   e("recurrence-starting-date").innerHTML = e("startDate").value;
   let select = e("recurrence-select");
@@ -247,7 +288,7 @@ function updateRecurrence() {
   let list = e("recurrence-event-repetitions");
   clearChildren(list);
   let d = new Date(from);
-  while (d <= to) {
+  do {
     var div = document.createElement("div");
     var span = document.createElement("span");
     span.appendChild(document.createTextNode(makeShortDate(d)));
@@ -261,5 +302,5 @@ function updateRecurrence() {
     div.appendChild(removeButton);
     list.appendChild(div);
     d = addDays(d, interval);
-  }
+  } while (d <= to && interval > 0);
 }

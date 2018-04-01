@@ -117,7 +117,6 @@ class TiqBizAPI {
   postData(action, data) {
     data._method = "POST";
     var payload = this.buildPayload(data);
-    log("POST url=" + API_URL + action + " data=" + payload);
     var headers = {
       'Content-Type': 'application/x-www-form-urlencoded',
     };
