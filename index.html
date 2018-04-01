@@ -10,11 +10,7 @@
       <p>FlexiBuzz password: <input type="password" id="password"/></p>
       <p><button id="loginButton" onclick="login();">Login</button></p>
     </div>
-    <div>
-      <button onclick="listBoxes();">List Boxes</button>
-      <button onclick="listCalendar();">List Calendar</button>
-    </div>
-    <div >
+    <div id="calendar-display">
       <table>
         <thead>
           <tr>
@@ -25,6 +21,48 @@
         </tbody>
       </table>
     </div>
-    <div id="log"></div>
+    <div id="new-event-form">
+      <p>Create new calendar event:</p>
+      <p>Title: <input type="text" id="title"/></p>
+      <p>Description:</p>
+      <textarea id="description" cols="50" rows="10"></textarea>
+      <p>All day: <input type="checkbox" id="allDay" onclick="allDayChanged();"/></p>
+      <p>
+        Date: <input type="date" id="startDate" onchange="updateRecurrence();"/>
+        time: <input type="time" id="startTime"/>
+        until: <input type="time" id="endTime"/>
+      </p>
+      <p>Location (name): <input type="text" id="location"/></p>
+      <p>Address: <input type="text" id="address"/></p>
+      <fieldset>
+        <legend>Boxes</legend>
+        <div id="box-list">
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Notifications</legend>
+        <div id="notification-list">
+          <input type="checkbox" id="notify-day-before" checked="true"><label>10am the day beforehand</label>
+          <input type="checkbox" id="notify-24-hours-before"><label>24 hours beforehand</label>
+          <input type="checkbox" id="notify-1-hour-before" checked="true"><label>1 hour beforehand</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Recurrence</legend>
+        <select id="recurrence-select" onchange="updateRecurrence();">
+          <option value="0" selected>One off event</option>
+          <option value="1">Every week</option>
+          <option value="2">Every 2 weeks</option>
+          <option value="4">Every 4 weeks</option>
+        </select>
+        from <span id="recurrence-starting-date"></span>
+        until <input type="date" id="recurrence-ending-date" onchange="updateRecurrence();"/>
+        <div id="recurrence-event-repetitions">
+          </div>
+      </fieldset>
+      <p><button onclick="createCalendarEvent();">Create event</button></p>
+    </div>
+    <div id="log">
+    </div>
   </body>
 </html>

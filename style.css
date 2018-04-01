@@ -1,3 +1,28 @@
 #loginBox.loggedIn {
   display: none;
 }
+
+.border {
+  border: solid black 1px;
+}
+
+#log {
+  border: solid black 1px;
+  font-size: 10;
+  font-family: 'Arial','verdana';
+  color: darkgray;
+}
+
+#calendar-display {
+  border: solid black 1px;
+}
+
+#calendar-display thead td {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+#new-event-form {
+  border: solid black 1px;
+  padding: 5px;
+}
