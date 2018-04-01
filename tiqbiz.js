@@ -85,10 +85,39 @@ class TiqBizAPI {
     });
   }
 
+  addEvent(data) {
+    var formData = new FormData();
+    for (var name in data) {
+      if (name.endsWith("[]")) {
+        for (var value of data[name]) {
+          formData.append(name, value);
+        }
+      } else {
+        formData.append(name, data[name]);
+      }
+    }
+
+    return this.postFormData("businesses/" + this.business.id + "/posts", formData);
+  }
+
+  postFormData(action, formData) {
+    var headers = {};
+    if (this.apiToken) {
+      headers['Authorization'] = 'Bearer ' + this.apiToken;
+    }
+    return fetch(API_URL + action, {
+      body: formData, // must match 'Content-Type' header
+      cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+      headers: new Headers(headers),
+      method: 'POST', // *GET, POST, PUT, DELETE, etc.
+    })
+    .then(response => response.json()) // parses response to JSON
+  }
+
   postData(action, data) {
     data._method = "POST";
     var payload = this.buildPayload(data);
-    // log("POST url=" + API_URL + action + " data=" + payload);
+    log("POST url=" + API_URL + action + " data=" + payload);
     var headers = {
       'Content-Type': 'application/x-www-form-urlencoded',
     };
@@ -98,12 +127,8 @@ class TiqBizAPI {
     return fetch(API_URL + action, {
       body: payload, // must match 'Content-Type' header
       cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-      // credentials: 'same-origin', // include, same-origin, *omit
       headers: new Headers(headers),
       method: 'POST', // *GET, POST, PUT, DELETE, etc.
-      // mode: 'cors', // no-cors, cors, *same-origin
-      // redirect: 'follow', // *manual, follow, error
-      // referrer: 'no-referrer', // *client, no-referrer
     })
     .then(response => response.json()) // parses response to JSON
   }
@@ -111,19 +136,14 @@ class TiqBizAPI {
   getData(action, data) {
     data._method = "GET";
     var payload = this.buildPayload(data);
-    // log("GET url=" + API_URL + action + " data=" + payload);
     var headers = {};
     if (this.apiToken.length > 0) {
       headers['Authorization'] = 'Bearer ' + this.apiToken;
     }
     return fetch(API_URL + action + "?" + payload, {
       cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-      // credentials: 'same-origin', // include, same-origin, *omit
       headers: new Headers(headers),
       method: 'GET', // *GET, POST, PUT, DELETE, etc.
-      // mode: 'cors', // no-cors, cors, *same-origin
-      // redirect: 'follow', // *manual, follow, error
-      // referrer: 'no-referrer', // *client, no-referrer
     })
     .then(response => response.json()) // parses response to JSON
   }

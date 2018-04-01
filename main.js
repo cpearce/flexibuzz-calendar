@@ -167,7 +167,8 @@ async function createCalendarEvent() {
 
   boxes = boxes.join(","); // Figure out multi-format for boxes.
   let allDay = e("allDay").value == "on" ? true : false;
-
+  let startTime = e("startTime").value + ":00";
+  let endTime = e("endTime").value.length > 0 ? (e("endTime").value + ":00") : undefined;
   for (var date of repetitions) {
     // Figure out what notifications are selected.
     let notifications = [];
@@ -177,10 +178,10 @@ async function createCalendarEvent() {
     }
     if (e("notify-24-hours-before").checked) {
       let d = makeShortDate(addDays(new Date(date), -1));
-      notifications.push(makeDate(d, e("startTime").value, false));
+      notifications.push(makeDate(d, startTime, false));
     }
     if (e("notify-1-hour-before").checked) {
-      let timeStr = date + " " + e("startTime").value;
+      let timeStr = date + " " + startTime;
       let d = makeShortDateTime(addHours(new Date(timeStr), -1));
       notifications.push(d);
     }
@@ -190,23 +191,26 @@ async function createCalendarEvent() {
       post_type: "calendar",
       title: e("title").value,
       body_markdown: e("description").value,
-      start_date: makeDate(date, e("startTime").value, allDay),
-      end_date: makeDate(date, e("endTime").value, allDay),
+      start_date: makeDate(date, startTime, allDay),
       all_day: allDay,
       published_at: makeShortDateTime(new Date()),
     };
+    if (endTime) {
+      event.end_date = makeDate(date, endTime, allDay);
+    }
     if (e("location").value.length > 0) {
       event["location"] = e("location").value;
     }
     if (e("address").value.length > 0) {
       event["address"] = e("address").value;
     }
-    // event["notifications[]"] = "2018-05-10 10:00:00"; // 24 hours beforehand
-    log(JSON.stringify(event));
-    log("notifications at: " + notifications.join(","));
-
+    event["notifications[]"] = notifications;
+    log("Adding event " + JSON.stringify(event));
+    await tiqbiz.addEvent(event);
+    log("Added.");
   }
-
+  log("Updating calendar...");
+  await listCalendar();
 }
 
 function allDayChanged(event) {
