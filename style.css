@@ -1,3 +1,7 @@
+body {
+  font-family: 'Arial','verdana';
+}
+
 body.loggedIn > #loginBox {
   display: none;
 }
@@ -10,8 +14,7 @@ body:not(.loggedIn) > #main {
   border: solid black 1px;
 }
 
-#log {
-  border: solid black 1px;
+.log {
   font-size: 10;
   font-family: 'Arial','verdana';
   color: darkgray;
@@ -19,6 +22,8 @@ body:not(.loggedIn) > #main {
 
 #calendar-display {
   border: solid black 1px;
+  margin: 5px;
+  padding: 5px;
 }
 
 #calendar-display thead td {
@@ -28,5 +33,12 @@ body:not(.loggedIn) > #main {
 
 #new-event-form {
   border: solid black 1px;
+  margin: 5px;
+  padding: 5px;
+}
+
+#log-wrapper {
+  font-size: 10;
+  margin: 5px;
   padding: 5px;
 }
