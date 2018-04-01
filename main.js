@@ -19,7 +19,7 @@ function init() {
     e("password").value = password;
   }
   if (username && password) {
-    login().then(listCalendar).then(setupNewEventForm); // TODO: This needs to happen on the non-restore case too!
+    login();
   }
 }
 
@@ -38,11 +38,12 @@ async function login() {
       .then(() => {
         e("loginBox").classList.add("loggedIn");
         log("Authenticated with stored API token");
-       }, () => {
+        return listCalendar().then(setupNewEventForm);
+      }, () => {
          log("Failed to authenticate with stored token.");
          localStorage.removeItem("apiToken");
-         login();
-       });
+         return login();
+      });
   }
 
   let username = e("username").value;
@@ -59,6 +60,7 @@ async function login() {
     localStorage.setItem("username", username);
     localStorage.setItem("password", password);
     localStorage.setItem("apiToken", tiqbiz.apiToken);
+    return listCalendar().then(setupNewEventForm);
   }, (error) => {
     log("Failed to log in, error=" + error);
     e("loginBox").classList.remove("loggedIn");
