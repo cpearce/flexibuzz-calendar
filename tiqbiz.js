@@ -49,13 +49,35 @@ class TiqBizAPI {
         }));
       }
 
+      let timeOf = (s) => {
+        let r = /(\d\d:\d\d):\d\d/;
+        let m = s.match(r);
+        if (m.length < 2) {
+          log("Failed to extract time from '" + s + "'");
+          return s;
+        }
+        return m[1];
+      };
+
+      let dateOf = (s) => {
+        let r = /(\d\d\d\d-\d\d-\d\d)/;
+        let m = s.match(r);
+        if (m == null || m.length < 2) {
+          log("Failed to extract date from '" + s + "'");
+          return s;
+        }
+        return m[0];
+      };
+
       var posts = [];
       for (var r of responses) {
         for (var post of r.data) {
           posts.push({
             title: post.title,
-            startDate: post.start_date,
-            endDate: post.end_date,
+            startDate: dateOf(post.start_date),
+            startTime: timeOf(post.start_date),
+            endDate: dateOf(post.end_date),
+            endTime: timeOf(post.start_date),
             allDay: post.all_day,
             boxes: extractBoxes(post.boxes),
           });
