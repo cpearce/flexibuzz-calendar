@@ -43,11 +43,14 @@
           <fieldset>
             <legend>Notifications</legend>
             <div id="notification-list">
-              <input type="checkbox" id="notify-day-before" checked="true"><label>10am the day beforehand</label>
-              <input type="checkbox" id="notify-24-hours-before"><label>24 hours beforehand</label>
-              <input type="checkbox" id="notify-1-hour-before" checked="true"><label>1 hour beforehand</label>
             </div>
-          </fieldset>
+            Add notification at <input type="time" id="notificationTime" value="09:00" /> on
+            <select id="notificationDay">
+              <option value="-1" selected>the day before the event</option>
+              <option value="0">the day of the event</option>
+            </select>
+            <button onclick="addNotification()">Add notification</button>
+        </fieldset>
           <fieldset>
             <legend>Event repetitions</legend>
             <select id="recurrence-select" onchange="setTimeout(updateRecurrence, 0);">

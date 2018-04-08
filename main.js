@@ -208,28 +208,12 @@ async function createCalendarEvent() {
     endTime = e("endTime").value + ":00";
   }
   for (var date of repetitions) {
-    // Figure out what notifications are selected.
     let notifications = [];
-    if (e("notify-day-before").checked) {
-      let d = makeShortDate(addDays(new Date(date), -1));
-      notifications.push(makeDate(d, "10:00:00", false));
-    }
-    if (!allDay &&
-        !e("notify-24-hours-before").disabled &&
-        e("notify-24-hours-before").checked) {
-      let d = makeShortDate(addDays(new Date(date), -1));
+    for (let n of document.querySelectorAll(".notification")) {
+      let time = n.notificationTime;
+      let dayDelta = n.dayIndex - 1;
+      let d = makeShortDate(addDays(new Date(date), dayDelta));
       notifications.push(makeDate(d, startTime, false));
-    }
-    if (!allDay &&
-        !e("notify-1-hour-before").disabled &&
-        e("notify-1-hour-before").checked) {
-      let timeStr = date + " " + startTime;
-      let d = makeShortDateTime(addHours(new Date(timeStr), -1));
-      notifications.push(d);
-    }
-    if (notifications.length == 0) {
-      alert("Failed to calculate notification times.");
-      return;
     }
 
     let event = {
@@ -250,7 +234,9 @@ async function createCalendarEvent() {
     if (e("address").value.length > 0) {
       event["address"] = e("address").value;
     }
-    event["notifications[]"] = notifications;
+    if (notifications.length > 0) {
+      event["notifications[]"] = notifications;
+    }
     log("Adding event " + JSON.stringify(event));
     await tiqbiz.addEvent(event);
     log("Added.");
@@ -264,13 +250,9 @@ function allDayChanged(event) {
   if (allDayCheckbox.checked) {
     e("startTime").disabled = true;
     e("endTime").disabled = true;
-    e("notify-1-hour-before").disabled = true;
-    e("notify-24-hours-before").disabled = true;
   } else {
     e("startTime").disabled = false;
     e("endTime").disabled = false;
-    e("notify-1-hour-before").disabled = false;
-    e("notify-24-hours-before").disabled = false;
   }
 }
 
@@ -317,4 +299,22 @@ function updateRecurrence() {
     list.appendChild(div);
     d = addDays(d, interval);
   } while (d <= to && interval > 0);
+}
+
+function addNotification() {
+  let time = e("notificationTime").value;
+  let days = ["the day before the event", "the day of the event"];
+  let dayIndex = e("notificationDay").selectedIndex;
+  let div = document.createElement("div");
+  div.classList.add("notification");
+  div.dayIndex = dayIndex;
+  div.notificationTime = time;
+  div.appendChild(document.createTextNode(time + " on " + days[dayIndex]));
+  let button = document.createElement("button");
+  button.appendChild(document.createTextNode("Remove"));
+  button.onclick = () => {
+    div.parentNode.removeChild(div);
+  };
+  div.appendChild(button);
+  e("notification-list").appendChild(div);
 }
