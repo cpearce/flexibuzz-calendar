@@ -42,3 +42,6 @@ body:not(.loggedIn) > #main {
   margin: 5px;
   padding: 5px;
 }
+
+tr:nth-child(even) {background: #CCC}
+tr:nth-child(odd) {background: #FFF}
